@@ -36,9 +36,20 @@ while True:
     try:
 
 
-        units = gc.get_team_array(Planet.Mars)
+        units = gc.my_units()
+        count = {}
 
-        
+        count["healer"] = 0
+        count["knight"] = 0
+
+        for unit in units:
+
+            if unit.unit_type == bc.UnitType.Healer:
+
+                count["healer"]+=1
+
+            if unit.unit_type == bc.UnitType.Knight:
+                count["knight"] += 1
 
         # walk through our units:
         for unit in gc.my_units():
@@ -64,10 +75,19 @@ while True:
 
                 if x == 0:
 
-                    if gc.can_produce_robot(unit.id, bc.UnitType.Knight):
+                    if count["knight"] < count["healer"] and gc.can_produce_robot(unit.id, bc.UnitType.Knight):
                         gc.produce_robot(unit.id, bc.UnitType.Knight)
                         print('produced a knight!')
                         continue
+                    else:
+
+                        if gc.can_produce_robot(unit.id, bc.UnitType.Healer):
+                            gc.produce_robot(unit.id, bc.UnitType.Healer)
+                            print('produced a healer!')
+                            continue
+
+
+
                 elif x == 1:
 
                     if gc.can_produce_robot(unit.id, bc.UnitType.Worker):
@@ -75,11 +95,19 @@ while True:
                         print('produced a worker!')
                         continue
 
+
+
+
                 elif x == 2:
 
-                    if gc.can_produce_robot(unit.id, bc.UnitType.Healer):
+                    if  count["healer"] < count["knight"]  and gc.can_produce_robot(unit.id, bc.UnitType.Healer):
                         gc.produce_robot(unit.id, bc.UnitType.Healer)
                         print('produced a healer!')
+                        continue
+
+                    elif gc.can_produce_robot(unit.id, bc.UnitType.Knight):
+                        gc.produce_robot(unit.id, bc.UnitType.Knight)
+                        print('produced a knight!')
                         continue
 
             # first, let's look for nearby blueprints to work on
@@ -96,7 +124,7 @@ while True:
                         print('attacked a thing!')
                         gc.attack(unit.id, other.id)
                         continue
-                    if other.team == my_team and gc.is_heal_ready(unit.id) and gc.can_heal(unit.id,other.id):
+                    if other.team == my_team and gc.is_heal_ready(unit.id) and gc.can_heal(unit.id,other.id) and other.health <other.max_health:
 
                         print('healed a thing')
                         gc.heal(unit.id,other.id)
