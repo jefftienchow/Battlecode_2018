@@ -41,6 +41,11 @@ while True:
 
         count["healer"] = 0
         count["knight"] = 0
+        count["factory"] = 0
+        #initaite counts of units
+        fac_completed = True
+        fac_not_complete = set()
+        #boolean to determine if all of our factories are fully built
 
         for unit in units:
 
@@ -51,10 +56,19 @@ while True:
             if unit.unit_type == bc.UnitType.Knight:
                 count["knight"] += 1
 
+            if unit.unit_type == bc.UnitType.Factory:
+                count["factory"] += 1
+
+                if unit.health < unit.max_health:
+                    fac_not_complete.add(unit)
+                    fac_completed = False
+                    #if factory health is less than max, it is not done
         # walk through our units:
         for unit in gc.my_units():
 
-            x = random.randrange(0, 3, 1)
+            x = random.randrange(0, 4, 1)
+
+            #random variables for different classes
 
 
 
@@ -69,6 +83,7 @@ while True:
                         print('unloaded something')
                         gc.unload(unit.id, d)
                         continue
+                #if factory can unload something unload it,
 
 
 
@@ -110,21 +125,55 @@ while True:
                         print('produced a knight!')
                         continue
 
+                elif x == 3:
+
+
+                    if gc.can_produce_robot(unit.id, bc.UnitType.Ranger):
+                        gc.produce_robot(unit.id, bc.UnitType.Ranger)
+                        print('produced a knight!')
+                        continue
+
             # first, let's look for nearby blueprints to work on
             location = unit.location
             if location.is_on_map():
-                nearby = gc.sense_nearby_units(location.map_location(), 2)
+                nearby = gc.sense_nearby_units(location.map_location(), 20)
                 for other in nearby:
-                    if unit.unit_type == bc.UnitType.Worker and gc.can_build(unit.id, other.id):
-                        gc.build(unit.id, other.id)
-                        print('built a factory!')
-                        # move onto the next unit
-                        continue
-                    if other.team != my_team and gc.is_attack_ready(unit.id) and gc.can_attack(unit.id, other.id):
+                    if unit.unit_type == bc.UnitType.Worker and other.unit_type == bc.UnitType.Factory:
+
+                        #workers try to build factories nearby
+
+                        if  gc.can_build(unit.id, other.id):
+                            gc.build(unit.id, other.id)
+                            print('built a factory!!')
+                            # move onto the next unit
+                            continue
+                        elif other in fac_not_complete:
+
+                            #if a factory is not completed, move towards factories
+                            #need to change to it moves to factories that aren't completed only
+
+                            maploc = unit.location.map_location()
+                            factory_loc = other.location.map_location()
+                            direction = maploc.direction_to(factory_loc)
+                           # print("direction",direction)
+                            if gc.is_move_ready(unit.id):
+                                #print("I am move ready")
+
+                                if gc.can_move(unit.id, direction):
+                                   # print("I can move in that direction")
+                                    gc.move_robot(unit.id, direction)
+                                    #print("Moving towards factory")
+                                    continue
+                                else:
+                                    pass
+
+
+
+                    if unit.unit_type == bc.UnitType.Knight and  other.team != my_team and gc.is_attack_ready(unit.id) and gc.can_attack(unit.id, other.id):
                         print('attacked a thing!')
                         gc.attack(unit.id, other.id)
                         continue
-                    if other.team == my_team and gc.is_heal_ready(unit.id) and gc.can_heal(unit.id,other.id) and other.health <other.max_health:
+                    if unit.unit_type == bc.UnitType.Healer and  other.team == my_team and gc.is_heal_ready(unit.id) and gc.can_heal(unit.id,other.id) and other.health <other.max_health:
 
                         print('healed a thing')
                         gc.heal(unit.id,other.id)
@@ -134,11 +183,14 @@ while True:
             d = random.choice(directions)
 
             # or, try to build a factory:
-            if gc.karbonite() > bc.UnitType.Factory.blueprint_cost() and gc.can_blueprint(unit.id, bc.UnitType.Factory, d):
+            if gc.karbonite() > bc.UnitType.Factory.blueprint_cost() and gc.can_blueprint(unit.id, bc.UnitType.Factory, d) and count["factory"] < 10:
                 gc.blueprint(unit.id, bc.UnitType.Factory, d)
+                print("BLUEPRINT")
             # and if that fails, try to move
             elif gc.is_move_ready(unit.id) and gc.can_move(unit.id, d):
                 gc.move_robot(unit.id, d)
+
+
 
     except Exception as e:
         print('Error:', e)
