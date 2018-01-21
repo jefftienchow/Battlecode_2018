@@ -11,7 +11,9 @@ print("pystarting")
 # A GameController is the main type that you talk to the game with.
 # Its constructor will connect to a running game.
 gc = bc.GameController()
-directions = list(bc.Direction)
+directions = [bc.Direction.North, bc.Direction.Northeast, bc.Direction.East, bc.Direction.Southeast, bc.Direction.South, bc.Direction.Southwest, bc.Direction.West, bc.Direction.Northwest]
+tryRotate = [0, -1, 1, -2, 2]
+
 
 print("pystarted")
 
@@ -27,6 +29,18 @@ gc.queue_research(bc.UnitType.Worker)
 gc.queue_research(bc.UnitType.Knight)
 
 my_team = gc.team()
+
+def rotate(dir,amount):
+    ind = directions.index(dir)
+    return directions[(ind+amount)%8]
+
+def fuzzygoto(unit,dest):
+    toward = unit.location.map_location().direction_to(dest)
+    for tilt in tryRotate:
+        d = rotate(toward,tilt)
+        if gc.can_move(unit.id, d):
+            gc.move_robot(unit.id, d)
+            break
 
 while True:
     # We only support Python 3, which means brackets around print()
@@ -152,20 +166,14 @@ while True:
                             #if a factory is not completed, move towards factories
                             #moves to factories that aren't completed only
 
-                            maploc = unit.location.map_location()
-                            factory_loc = other.location.map_location()
-                            direction = maploc.direction_to(factory_loc)
+
                            # print("direction",direction)
                             if gc.is_move_ready(unit.id):
                                 #print("I am move ready")
+                                factory_loc = other.location.map_location()
 
-                                if gc.can_move(unit.id, direction):
-                                   # print("I can move in that direction")
-                                    gc.move_robot(unit.id, direction)
-                                    #print("Moving towards factory")
-                                    continue
-                                else:
-                                    pass
+                                fuzzygoto(unit, factory_loc)
+                
 
 
 
