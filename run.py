@@ -44,7 +44,7 @@ while True:
         count["factory"] = 0
         #initaite counts of units
         fac_completed = True
-        fac_not_complete = set()
+        fac_not_complete = []
         #boolean to determine if all of our factories are fully built
 
         for unit in units:
@@ -60,7 +60,7 @@ while True:
                 count["factory"] += 1
 
                 if unit.health < unit.max_health:
-                    fac_not_complete.add(unit)
+                    fac_not_complete.append(unit)
                     fac_completed = False
                     #if factory health is less than max, it is not done
         # walk through our units:
