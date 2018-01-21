@@ -150,7 +150,7 @@ while True:
                         elif other in fac_not_complete:
 
                             #if a factory is not completed, move towards factories
-                            #need to change to it moves to factories that aren't completed only
+                            #moves to factories that aren't completed only
 
                             maploc = unit.location.map_location()
                             factory_loc = other.location.map_location()
